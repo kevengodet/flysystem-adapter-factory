@@ -1,0 +1,28 @@
+{
+    "name": "keven/flysystem-adapter-factory",
+    "description": "Create a Flysytem adapter from an array of parameters.",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Keven\\Flysystem\\": "src"
+        }
+    },
+    "require": {
+        "league/flysystem": "^1.0",
+        "keven/instantiator": "^1.0"
+    },
+    "suggest": {
+        "league/flysystem-azure": "Support for Microsoft Azure",
+        "league/flysystem-aws-s3-v3": "Support for Amazon S3",
+        "league/flysystem-copy": "Support for Copy.com",
+        "spatie/flysystem-dropbox": "Support for Dropbox",
+        "league/flysystem-gridfs": "Support for GridFS",
+        "league/flysystem-memory": "Support for in-memory storage",
+        "league/flysystem-rackspace": "Support for Rackspace",
+        "league/flysystem-sftp": "Support for SFTP",
+        "league/flysystem-webdav": "Support for WebDAV",
+        "jackalope/jackalope-doctrine-dbal": "Support for PHPCR",
+        "league/flysystem-phpcr": "Support for PHPCR",
+        "league/flysystem-replicate-adapter": "Support smooth transition between adapters"
+    }
+}
