@@ -2,6 +2,7 @@
 
 namespace Keven\Flysystem;
 
+use League\Flysystem\AdapterInterface;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Azure\AzureAdapter;
 use MicrosoftAzure\Storage\Common\ServicesBuilder;
@@ -30,10 +31,13 @@ use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 use League\Flysystem\Adapter\NullAdapter;
 use Keven\Flysystem\Exception\AdapterNotSupported;
 use Keven\Flysystem\Exception\PackageRequired;
+use Keven\Flysystem\Exception\InvalidUri;
 use Keven\Instantiator\Instantiator;
 
 final class AdapterFactory
 {
+    private const HOST_PLACEHOLDER = '__HOST_PLACEHOLDER__';
+
     /** @var Instantiator */
     private $instantiator;
 
@@ -43,17 +47,55 @@ final class AdapterFactory
     }
 
     /**
-     *
-     * @param array $config
-     *
+     * @throws InvalidUri
      * @throws AdapterNotSupported
      * @throws PackageRequired
      */
-    public function create(array $config)
+    public function createFromUri(string $uri): AdapterInterface
+    {
+        if (false !== strpos($uri, ':///')) {
+            $uri = str_replace(':///', '://'.self::HOST_PLACEHOLDER.'/', $uri);
+        }
+
+        $parts = parse_url($uri);
+
+        if (false === $parts) {
+            throw InvalidUri::fromUri($uri);
+        }
+
+        if (!isset($parts['scheme'])) {
+            throw InvalidUri::fromUri($uri);
+        }
+
+        if (isset($parts['query'])) {
+            parse_str($parts['query'], $config);
+        } else {
+            $config = [];
+        }
+
+        $config['adapter'] = $parts['scheme'];
+
+        if (isset($parts['host']) && $parts['host'] != self::HOST_PLACEHOLDER) {
+            $config['endpoint'] = $parts['host'];
+        }
+
+        if (isset($parts['path'])) {
+            $config['root'] = $parts['path'];
+            $config['prefix'] = $parts['path'];
+        }
+
+        return $this->create($config);
+    }
+
+    /**
+     * @throws AdapterNotSupported
+     * @throws PackageRequired
+     */
+    public function create(array $config): AdapterInterface
     {
         switch ($config['adapter'] ?? 'local') {
             case 'local':
-                return $this->instantiator->instantiate(Local::class, array_merge(['root' => '/', $config]));
+                return $this->instantiator->instantiate(Local::class, array_merge(['root' => '/'], $config));
 
             case 'azure':
                 if (!class_exists(AzureAdapter::class)) {
